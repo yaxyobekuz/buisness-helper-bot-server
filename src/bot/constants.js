@@ -22,8 +22,8 @@ export const MESSAGES = {
 /** Matnli qadamlar uchun eng kam uzunlik. */
 export const MIN_TEXT_LENGTH = 3;
 
-/** INN uchun eng kam uzunlik. */
-export const MIN_INN_LENGTH = 9;
+/** INN — aynan shuncha raqamdan iborat bo'lishi shart. */
+export const INN_LENGTH = 9;
 
 /** Yo'nalish nomi uchun eng katta uzunlik (Telegram tugmasiga sig'ishi uchun). */
 export const MAX_DIRECTION_LENGTH = 64;

@@ -1,4 +1,4 @@
-import { MIN_INN_LENGTH, MIN_TEXT_LENGTH } from '../constants.js';
+import { INN_LENGTH, MIN_TEXT_LENGTH } from '../constants.js';
 import { ACTIVITY_TYPES, activityTypeKeyboard, removeKeyboard } from '../keyboards/index.js';
 import { normalizePhone } from '../../utils/phone.js';
 
@@ -23,7 +23,19 @@ function textOfLength(minLength) {
 }
 
 const text = textOfLength(MIN_TEXT_LENGTH);
-const inn = textOfLength(MIN_INN_LENGTH);
+
+const INN_RE = new RegExp(`^\\d{${INN_LENGTH}}$`);
+
+/**
+ * INN faqat raqamlardan va aynan INN_LENGTH ta belgidan iborat bo'lishi kerak.
+ *
+ * @type {(raw: string) => ValidationResult}
+ */
+function inn(raw) {
+  const value = raw.trim();
+
+  return INN_RE.test(value) ? { ok: true, value } : { ok: false };
+}
 
 /** @type {(raw: string) => ValidationResult} */
 function activityType(raw) {

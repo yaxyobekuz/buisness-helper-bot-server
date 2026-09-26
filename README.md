@@ -89,10 +89,13 @@ uchun server qayta ishga tushsa ham oqim to'xtagan joyidan davom etadi.
 
 Telefon raqam turli ko'rinishda kiritilishi mumkin (`931234567`,
 `93 123 45 67`, `+998 93 123 45 67`, `00998...`) va `+998XXXXXXXXX`
-ko'rinishiga keltirilib saqlanadi. INN kamida 9 ta, qolgan matnli qadamlar
-kamida 3 ta belgidan iborat bo'lishi kerak — aks holda bot
-`Ma'lumot noto'g'ri` deb javob beradi. Chegaralar `src/bot/constants.js`
-da (`MIN_TEXT_LENGTH`, `MIN_INN_LENGTH`).
+ko'rinishiga keltirilib saqlanadi.
+
+INN aynan 9 ta raqamdan iborat bo'lishi shart — kam ham, ko'p ham emas;
+harf, bo'shliq yoki boshqa belgi qabul qilinmaydi. Qolgan matnli qadamlar
+kamida 3 ta belgidan iborat bo'lishi kerak. Shartga mos kelmasa bot
+`Ma'lumot noto'g'ri` deb javob beradi va o'sha qadamda qoladi. Chegaralar
+`src/bot/constants.js` da (`MIN_TEXT_LENGTH`, `INN_LENGTH`).
 
 Ro'yxat tugagach bosh sahifa `Ariza berish` va `Arizalarim` tugmalari bilan
 ochiladi.
