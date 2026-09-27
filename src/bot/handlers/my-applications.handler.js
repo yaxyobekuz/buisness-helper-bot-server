@@ -51,7 +51,6 @@ export async function handleMyApplicationsStep(ctx) {
 function formatApplication(application) {
   return [
     `Murojaat raqami: <b>${application.number}</b>`,
-    `Murojaat yo'nalishi: <b>${escapeHtml(application.direction?.name ?? '-')}</b>`,
     `Murojaat matni: <b>${escapeHtml(application.content)}</b>`,
   ].join('\n');
 }

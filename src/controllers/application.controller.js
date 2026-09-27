@@ -1,16 +1,9 @@
 import { APPLICATION_STATUSES } from '../constants.js';
-import { env } from '../config/env.js';
 import { Application } from '../models/application.model.js';
 import { ApiError } from '../utils/api-error.js';
 
-function withFileUrls(application) {
-  return {
-    ...application,
-    files: (application.files ?? []).map((file) => ({
-      ...file,
-      url: `${env.upload.publicUrl}${env.upload.routePath}/${file.fileName}`,
-    })),
-  };
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 export async function list(req, res) {
@@ -18,19 +11,17 @@ export async function list(req, res) {
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
   const filter = {};
 
-  if (req.query.status && APPLICATION_STATUSES.includes(req.query.status)) {
+  if (APPLICATION_STATUSES.includes(req.query.status)) {
     filter.status = req.query.status;
   }
 
-  if (req.query.direction) {
-    filter.direction = req.query.direction;
-  }
-
   if (req.query.search) {
-    const search = String(req.query.search).trim();
-    const asNumber = Number(search);
+    const search = escapeRegExp(String(req.query.search).trim());
+    const asNumber = Number(req.query.search);
 
     filter.$or = [
+      { fullName: { $regex: search, $options: 'i' } },
+      { phone: { $regex: search, $options: 'i' } },
       { content: { $regex: search, $options: 'i' } },
       ...(Number.isInteger(asNumber) ? [{ number: asNumber }] : []),
     ];
@@ -38,8 +29,7 @@ export async function list(req, res) {
 
   const [items, total] = await Promise.all([
     Application.find(filter)
-      .populate('direction', 'name status')
-      .populate('user', 'organizationName activityType phone directorFullName')
+      .populate('user', 'telegramId username firstName lastName')
       .sort({ number: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
@@ -49,22 +39,19 @@ export async function list(req, res) {
 
   res.json({
     success: true,
-    items: items.map(withFileUrls),
+    items,
     pagination: { page, limit, total, pages: Math.ceil(total / limit) || 1 },
   });
 }
 
 export async function getById(req, res) {
-  const application = await Application.findById(req.params.id)
-    .populate('direction', 'name status')
-    .populate('user')
-    .lean();
+  const application = await Application.findById(req.params.id).populate('user').lean();
 
   if (!application) {
     throw ApiError.notFound('Ariza topilmadi');
   }
 
-  res.json({ success: true, item: withFileUrls(application) });
+  res.json({ success: true, item: application });
 }
 
 export async function updateStatus(req, res) {
@@ -74,12 +61,7 @@ export async function updateStatus(req, res) {
     throw ApiError.badRequest("Holat noto'g'ri");
   }
 
-  const application = await Application.findByIdAndUpdate(
-    req.params.id,
-    { status },
-    { new: true },
-  )
-    .populate('direction', 'name status')
+  const application = await Application.findByIdAndUpdate(req.params.id, { status }, { new: true })
     .populate('user')
     .lean();
 
@@ -87,5 +69,5 @@ export async function updateStatus(req, res) {
     throw ApiError.notFound('Ariza topilmadi');
   }
 
-  res.json({ success: true, item: withFileUrls(application) });
+  res.json({ success: true, item: application });
 }

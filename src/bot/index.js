@@ -2,7 +2,6 @@ import { Bot } from 'node-telegram-bot-api/node';
 
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
-import { cancelAllPendingSaves } from './handlers/application.handler.js';
 import { registerHandlers } from './register.js';
 
 export const bot = new Bot(env.bot.token, { apiRoot: env.bot.apiRoot });
@@ -44,8 +43,6 @@ export async function startBot() {
 }
 
 export async function stopBot() {
-  cancelAllPendingSaves();
-
   if (env.bot.mode === 'webhook') {
     await bot.api.deleteWebhook();
     return;

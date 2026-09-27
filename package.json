@@ -1,8 +1,8 @@
 {
-  "name": "buisness-helper-bot-server",
+  "name": "tadbirkorga-komak-server",
   "version": "1.0.0",
   "private": true,
-  "description": "Telegram bot va REST API serveri",
+  "description": "Tadbirkorga ko'mak — Telegram bot va REST API serveri",
   "type": "module",
   "main": "src/index.js",
   "engines": {

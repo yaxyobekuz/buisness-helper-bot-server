@@ -1,4 +1,6 @@
-# buisness-helper-bot-server
+# Tadbirkorga ko'mak — server
+
+npm paketi: `tadbirkorga-komak-server`
 
 Telegram bot va REST API serveri. Bot server bilan bitta jarayonda,
 doimiy ishlaydi.
@@ -39,15 +41,12 @@ src
 │   └── scenes/           ko'p qadamli oqimlar
 ├── models/               Mongoose modellari
 ├── controllers/          API kontrollerlari
-├── routes/               API yo'nalishlari
-├── services/             biznes mantiq (fayl, ariza, yo'nalish, admin)
+├── routes/               API manzillari
+├── services/             biznes mantiq (ariza, admin)
 ├── middlewares/          Express oraliq qatlamlari (auth, xatolar)
-├── constants.js          holatlar ro'yxati (ariza, yo'nalish)
+├── constants.js          ariza holatlari ro'yxati
 └── utils/                logger, ApiError, telefon formatlash
 ```
-
-Botga yuborilgan fayllar `UPLOAD_DIR` (standart: `uploads/`) papkasiga
-saqlanadi va `/uploads/<fayl>` manzilida beriladi. Papka git ga tushmaydi.
 
 ## Bot kutubxonasi
 
@@ -74,57 +73,37 @@ faqat shu maxfiy kalit tasdiqlaydi. Webhook Express ilovasining
 `WEBHOOK_PATH` manzilida ochiladi va bot ishga tushganda avtomatik
 ro'yxatdan o'tkaziladi.
 
-## Ro'yxatdan o'tish oqimi
+## Tadbirkorlar
 
-`/start` dan so'ng qadamlar ketma-ket so'raladi: tashkilot nomi → faoliyat
-turi (klaviaturadan YaTT/MChJ) → rahbar F.I.Sh. → manzil → INN → telefon
-raqam.
+Botga `/start` bosgan foydalanuvchi avtomatik tadbirkor sifatida saqlanadi —
+alohida ro'yxatdan o'tish yo'q. Telegram bergan ma'lumot (id, username, ism,
+familiya) o'sha zahoti yoziladi.
 
-Har bir qadam `src/bot/scenes/registration.js` dagi massivda belgilangan —
-tartibni o'zgartirish yoki yangi qadam qo'shish uchun shu massivni
-tahrirlash kifoya.
-
-Joriy qadam foydalanuvchi hujjatidagi `step` maydonida saqlanadi, shuning
-uchun server qayta ishga tushsa ham oqim to'xtagan joyidan davom etadi.
-
-Telefon raqam turli ko'rinishda kiritilishi mumkin (`931234567`,
-`93 123 45 67`, `+998 93 123 45 67`, `00998...`) va `+998XXXXXXXXX`
-ko'rinishiga keltirilib saqlanadi.
-
-INN aynan 9 ta raqamdan iborat bo'lishi shart — kam ham, ko'p ham emas;
-harf, bo'shliq yoki boshqa belgi qabul qilinmaydi. Qolgan matnli qadamlar
-kamida 3 ta belgidan iborat bo'lishi kerak. Shartga mos kelmasa bot
-`Ma'lumot noto'g'ri` deb javob beradi va o'sha qadamda qoladi. Chegaralar
-`src/bot/constants.js` da (`MIN_TEXT_LENGTH`, `INN_LENGTH`).
-
-Ro'yxat tugagach bosh sahifa `Ariza berish` va `Arizalarim` tugmalari bilan
-ochiladi.
+Tadbirkor kartochkasidagi F.I.Sh., manzil va telefon uning **oxirgi
+arizasidan** ko'chiriladi — panelda uni tanib olish uchun.
 
 ## Ariza berish oqimi
 
-`Ariza berish` → yo'nalish → murojaat mazmuni → fayl(lar) → ariza saqlanadi.
+`Ariza berish` → F.I.Sh. → manzil → telefon → murojaat mazmuni → saqlanadi.
 
-**Yo'nalish.** Klaviaturada faqat `Faol` holatdagi yo'nalishlar, har biri
-alohida qatorda, oxirida `Bosh menu`. Foydalanuvchi ro'yxatda yo'q nomni
-yozsa, o'sha nom bilan yangi yo'nalish `Yangi` holatida yaratiladi —
-u admin panelda faollashtirilmaguncha boshqa foydalanuvchilarga
-ko'rinmaydi, lekin ariza o'sha yo'nalishga biriktiriladi.
+Har bir qadam `src/bot/scenes/application.js` dagi massivda belgilangan —
+tartibni o'zgartirish yoki yangi qadam qo'shish uchun shu massivni
+tahrirlash kifoya. Joriy qadam foydalanuvchi hujjatining `session.step`
+maydonida saqlanadi, shuning uchun server qayta ishga tushsa ham oqim
+to'xtagan joyidan davom etadi. Har qanday qadamda `Bosh menu` tugmasi
+oqimdan chiqaradi.
 
-**Fayllar.** Ixtiyoriy, bir nechta bo'lishi mumkin. `O'tkazib yuborish`
-tugmasi bosilsa ariza darhol saqlanadi. Fayl yuborilsa, albomdagi qolgan
-fayllar kelishi uchun `FILE_COLLECT_WINDOW_MS` (standart 2 soniya) kutiladi
-va so'nggi fayldan keyin ariza avtomatik saqlanadi. Fayllar Telegram
-serveridan yuklab olinib, shu serverning diskiga yoziladi.
-
-> Eslatma: polling rejimida updatelar ketma-ket qayta ishlanadi, shuning
-> uchun fayllarni to'plashda poyga bo'lmaydi. Webhook rejimida so'rovlar
-> parallel kelishi mumkin.
+Telefon raqam turli ko'rinishda kiritilishi mumkin (`931234567`,
+`93 123 45 67`, `+998 93 123 45 67`, `00998...`) va `+998XXXXXXXXX`
+ko'rinishiga keltirilib saqlanadi. Qolgan matnli qadamlar kamida 3 ta
+belgidan iborat bo'lishi kerak (`MIN_TEXT_LENGTH`). Shartga mos kelmasa bot
+`Ma'lumot noto'g'ri` deb javob beradi va o'sha qadamda qoladi.
 
 ## Arizalarim
 
 `Arizalarim` → holat tugmalari (`Yangi`, `Jarayonda`, `Tugallangan`) va
-`Bosh menu`. Tanlangan holatdagi arizalar raqami, yo'nalishi va matni bilan
-ro'yxat qilib yuboriladi.
+`Bosh menu`. Tanlangan holatdagi arizalar raqami va matni bilan ro'yxat
+qilib yuboriladi.
 
 ## API
 
@@ -137,14 +116,11 @@ Barcha `/api` manzillari (`/health` va `/auth/login` dan tashqari)
 | `GET /api/auth/me` | joriy admin |
 | `PATCH /api/auth/profile` | login, F.I.Sh., parolni o'zgartirish |
 | `GET /api/stats/overview` | bosh sahifa statistikasi |
-| `GET /api/applications` | arizalar (`status`, `direction`, `search`, `page`) |
+| `GET /api/applications` | arizalar (`status`, `search`, `page`) |
 | `GET /api/applications/:id` | bitta ariza |
 | `PATCH /api/applications/:id` | ariza holatini o'zgartirish |
-| `GET /api/organizations` | tashkilotlar (`search`, `page`) |
-| `GET /api/organizations/:id` | tashkilot + uning arizalari |
-| `GET /api/directions` | barcha yo'nalishlar |
-| `POST /api/directions` | yangi yo'nalish (darhol `Faol`) |
-| `PATCH /api/directions/:id` | nom yoki holatni o'zgartirish |
+| `GET /api/entrepreneurs` | tadbirkorlar (`search`, `page`) |
+| `GET /api/entrepreneurs/:id` | tadbirkor + uning arizalari |
 
 ## Admin hisobi
 

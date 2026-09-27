@@ -29,7 +29,6 @@ const botMode = process.env.BOT_MODE === 'webhook' ? 'webhook' : 'polling';
 const webhookPath = process.env.WEBHOOK_PATH || '/telegram/webhook';
 
 const corsOrigin = list('CORS_ORIGIN');
-const uploadDir = path.resolve(rootDir, process.env.UPLOAD_DIR || 'uploads');
 
 export const env = {
   rootDir,
@@ -61,10 +60,5 @@ export const env = {
   jwt: {
     secret: required('JWT_SECRET'),
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  },
-  upload: {
-    dir: uploadDir,
-    publicUrl: (process.env.PUBLIC_URL || `http://localhost:${process.env.PORT ?? 4000}`).replace(/\/+$/, ''),
-    routePath: '/uploads',
   },
 };

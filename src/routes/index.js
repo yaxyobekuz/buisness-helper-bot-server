@@ -3,8 +3,7 @@ import { Router } from 'express';
 import { mongoose } from '../config/database.js';
 import * as auth from '../controllers/auth.controller.js';
 import * as applications from '../controllers/application.controller.js';
-import * as directions from '../controllers/direction.controller.js';
-import * as organizations from '../controllers/organization.controller.js';
+import * as entrepreneurs from '../controllers/entrepreneur.controller.js';
 import * as stats from '../controllers/stats.controller.js';
 import { requireAuth } from '../middlewares/auth.js';
 
@@ -29,11 +28,7 @@ router.get('/applications', requireAuth, applications.list);
 router.get('/applications/:id', requireAuth, applications.getById);
 router.patch('/applications/:id', requireAuth, applications.updateStatus);
 
-router.get('/organizations', requireAuth, organizations.list);
-router.get('/organizations/:id', requireAuth, organizations.getById);
-
-router.get('/directions', requireAuth, directions.list);
-router.post('/directions', requireAuth, directions.create);
-router.patch('/directions/:id', requireAuth, directions.update);
+router.get('/entrepreneurs', requireAuth, entrepreneurs.list);
+router.get('/entrepreneurs/:id', requireAuth, entrepreneurs.getById);
 
 export default router;

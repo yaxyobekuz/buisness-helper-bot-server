@@ -1,26 +1,38 @@
 import { Application } from '../models/application.model.js';
 import { nextSequence } from '../models/counter.model.js';
+import { User } from '../models/user.model.js';
 
 /**
  * Yangi ariza yaratadi va ketma-ket raqam beradi.
  *
- * @param {{ user: unknown, direction: unknown, content: string, files?: unknown[] }} data
+ * Ariza ma'lumotlari tadbirkor kartochkasiga ham ko'chiriladi —
+ * panelda tadbirkorni F.I.Sh. va telefoni bilan ko'rish uchun.
+ *
+ * @param {{ user: unknown, fullName: string, address: string, phone: string, content: string }} data
  */
-export async function createApplication({ user, direction, content, files = [] }) {
+export async function createApplication({ user, fullName, address, phone, content }) {
   const number = await nextSequence('application');
 
-  return Application.create({ number, user, direction, content, files });
+  const application = await Application.create({
+    number,
+    user,
+    fullName,
+    address,
+    phone,
+    content,
+  });
+
+  await User.findByIdAndUpdate(user, { $set: { fullName, address, phone } });
+
+  return application;
 }
 
 /**
- * Foydalanuvchining berilgan holatdagi arizalari.
+ * Tadbirkorning berilgan holatdagi arizalari.
  *
  * @param {unknown} userId
  * @param {string} status
  */
 export function getUserApplications(userId, status) {
-  return Application.find({ user: userId, status })
-    .populate('direction', 'name')
-    .sort({ number: -1 })
-    .lean();
+  return Application.find({ user: userId, status }).sort({ number: -1 }).lean();
 }

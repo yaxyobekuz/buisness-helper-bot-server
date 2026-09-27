@@ -1,8 +1,11 @@
 import { clearSession } from '../../models/user.model.js';
 import { BUTTONS, MAIN_MENU_BUTTONS } from '../keyboards/index.js';
 import { APPLICATION_FLOW, handleApplicationStep, startApplication } from './application.handler.js';
-import { handleRegistration } from './registration.handler.js';
-import { MY_APPLICATIONS_FLOW, handleMyApplicationsStep, startMyApplications } from './my-applications.handler.js';
+import {
+  MY_APPLICATIONS_FLOW,
+  handleMyApplicationsStep,
+  startMyApplications,
+} from './my-applications.handler.js';
 import { showMainMenu } from './main-menu.handler.js';
 
 /**
@@ -12,11 +15,6 @@ import { showMainMenu } from './main-menu.handler.js';
  */
 export async function handleMessage(ctx) {
   const user = ctx.state.user;
-
-  if (!user.isRegistered) {
-    return handleRegistration(ctx);
-  }
-
   const text = ctx.message?.text?.trim();
 
   // "Bosh menu" har qanday oqimdan chiqaradi.

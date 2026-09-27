@@ -1,10 +1,8 @@
 import mongoose from 'mongoose';
 
-import { ACTIVITY_TYPES } from '../constants.js';
-
 const sessionSchema = new mongoose.Schema(
   {
-    /** Joriy oqim: 'registration' | 'application' | 'myApplications' */
+    /** Joriy oqim: 'application' | 'myApplications' */
     flow: { type: String, default: null },
     /** Oqim ichidagi joriy qadam. */
     step: { type: String, default: null },
@@ -14,20 +12,23 @@ const sessionSchema = new mongoose.Schema(
   { _id: false },
 );
 
+/**
+ * Tadbirkor. Botga /start bosilishi bilan avtomatik yaratiladi —
+ * alohida ro'yxatdan o'tish talab qilinmaydi.
+ */
 const userSchema = new mongoose.Schema(
   {
     telegramId: { type: Number, required: true, unique: true, index: true },
     username: { type: String, default: null },
+    firstName: { type: String, default: null },
+    lastName: { type: String, default: null },
 
-    organizationName: { type: String, default: null },
-    activityType: { type: String, enum: [...ACTIVITY_TYPES, null], default: null },
-    directorFullName: { type: String, default: null },
+    /** Oxirgi arizada ko'rsatilgan ma'lumotlar — panelda ko'rsatish uchun. */
+    fullName: { type: String, default: null },
     address: { type: String, default: null },
-    inn: { type: String, default: null },
     phone: { type: String, default: null },
 
     session: { type: sessionSchema, default: () => ({}) },
-    isRegistered: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
