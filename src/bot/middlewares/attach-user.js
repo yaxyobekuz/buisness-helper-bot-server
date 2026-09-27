@@ -1,3 +1,4 @@
+import { Application } from '../../models/application.model.js';
 import { User } from '../../models/user.model.js';
 
 /**
@@ -10,7 +11,7 @@ import { User } from '../../models/user.model.js';
 export async function attachUser(ctx, next) {
   if (!ctx.from || ctx.from.is_bot) return;
 
-  ctx.state.user = await User.findOneAndUpdate(
+  const user = await User.findOneAndUpdate(
     { telegramId: ctx.from.id },
     {
       $setOnInsert: { telegramId: ctx.from.id },
@@ -20,8 +21,22 @@ export async function attachUser(ctx, next) {
         lastName: ctx.from.last_name ?? null,
       },
     },
-    { new: true, upsert: true, setDefaultsOnInsert: true },
+    { new: false, upsert: true, setDefaultsOnInsert: true },
   );
+
+  // O'chirilgan tadbirkor botga qaytsa — u va u bilan birga o'chirilgan
+  // arizalari tiklanadi, aks holda bot u uchun ishlamay qolardi.
+  if (user?.deletedAt) {
+    await Promise.all([
+      User.updateOne({ _id: user._id }, { $set: { deletedAt: null } }),
+      Application.updateMany(
+        { user: user._id, deletedWithUser: true },
+        { $set: { deletedAt: null, deletedWithUser: false } },
+      ),
+    ]);
+  }
+
+  ctx.state.user = await User.findOne({ telegramId: ctx.from.id });
 
   await next();
 }

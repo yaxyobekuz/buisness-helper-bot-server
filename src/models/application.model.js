@@ -18,6 +18,11 @@ const applicationSchema = new mongoose.Schema(
       default: APPLICATION_STATUS.new,
       index: true,
     },
+
+    /** Soft delete — to'ldirilgan bo'lsa ariza ro'yxatlarda ko'rinmaydi. */
+    deletedAt: { type: Date, default: null, index: true },
+    /** Tadbirkor bilan birga o'chirilganmi (tiklashda shuni qaytarish uchun). */
+    deletedWithUser: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

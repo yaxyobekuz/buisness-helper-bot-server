@@ -34,5 +34,7 @@ export async function createApplication({ user, fullName, address, phone, conten
  * @param {string} status
  */
 export function getUserApplications(userId, status) {
-  return Application.find({ user: userId, status }).sort({ number: -1 }).lean();
+  return Application.find({ user: userId, status, deletedAt: null })
+    .sort({ number: -1 })
+    .lean();
 }

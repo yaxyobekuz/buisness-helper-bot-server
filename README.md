@@ -116,11 +116,31 @@ Barcha `/api` manzillari (`/health` va `/auth/login` dan tashqari)
 | `GET /api/auth/me` | joriy admin |
 | `PATCH /api/auth/profile` | login, F.I.Sh., parolni o'zgartirish |
 | `GET /api/stats/overview` | bosh sahifa statistikasi |
-| `GET /api/applications` | arizalar (`status`, `search`, `page`) |
+| `GET /api/applications` | arizalar (`status`, `search`, `page`, `deleted`) |
 | `GET /api/applications/:id` | bitta ariza |
 | `PATCH /api/applications/:id` | ariza holatini o'zgartirish |
-| `GET /api/entrepreneurs` | tadbirkorlar (`search`, `page`) |
+| `DELETE /api/applications/:id` | arizani yashirish (soft delete) |
+| `POST /api/applications/:id/restore` | arizani tiklash |
+| `GET /api/entrepreneurs` | tadbirkorlar (`search`, `page`, `deleted`) |
 | `GET /api/entrepreneurs/:id` | tadbirkor + uning arizalari |
+| `DELETE /api/entrepreneurs/:id` | tadbirkorni va arizalarini yashirish |
+| `POST /api/entrepreneurs/:id/restore` | tadbirkorni tiklash |
+
+## O'chirish (soft delete)
+
+Hech narsa bazadan butunlay o'chirilmaydi — `deletedAt` maydoni
+to'ldiriladi va yozuv ro'yxatlardan, statistikadan hamda botdan
+yashiriladi. Ro'yxatlarda `?deleted=1` bilan ularni ko'rish va tiklash
+mumkin.
+
+- **Ariza o'chirilsa** — faqat o'sha ariza yashiriladi.
+- **Tadbirkor o'chirilsa** — u va uning arizalari yashiriladi; bu arizalarga
+  `deletedWithUser` belgisi qo'yiladi.
+- **Tadbirkor tiklansa** — u va `deletedWithUser` belgili arizalari qaytadi.
+  Alohida o'chirilgan arizalar o'chirilganicha qoladi.
+- **O'chirilgan tadbirkor botga qayta yozsa** — avtomatik tiklanadi (aks
+  holda bot u uchun ishlamay qolardi), arizalari ham xuddi shu qoida
+  bo'yicha qaytadi.
 
 ## Admin hisobi
 

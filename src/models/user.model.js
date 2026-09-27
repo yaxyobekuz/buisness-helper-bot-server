@@ -29,6 +29,9 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, default: null },
 
     session: { type: sessionSchema, default: () => ({}) },
+
+    /** Soft delete — to'ldirilgan bo'lsa tadbirkor ro'yxatlarda ko'rinmaydi. */
+    deletedAt: { type: Date, default: null, index: true },
   },
   { timestamps: true },
 );

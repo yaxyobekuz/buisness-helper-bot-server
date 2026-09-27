@@ -27,8 +27,12 @@ router.get('/stats/overview', requireAuth, stats.overview);
 router.get('/applications', requireAuth, applications.list);
 router.get('/applications/:id', requireAuth, applications.getById);
 router.patch('/applications/:id', requireAuth, applications.updateStatus);
+router.delete('/applications/:id', requireAuth, applications.softDelete);
+router.post('/applications/:id/restore', requireAuth, applications.restore);
 
 router.get('/entrepreneurs', requireAuth, entrepreneurs.list);
 router.get('/entrepreneurs/:id', requireAuth, entrepreneurs.getById);
+router.delete('/entrepreneurs/:id', requireAuth, entrepreneurs.softDelete);
+router.post('/entrepreneurs/:id/restore', requireAuth, entrepreneurs.restore);
 
 export default router;

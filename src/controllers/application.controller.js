@@ -9,7 +9,8 @@ function escapeRegExp(value) {
 export async function list(req, res) {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
-  const filter = {};
+  // Standart holatda o'chirilganlar ko'rinmaydi; ?deleted=1 — faqat o'chirilganlar.
+  const filter = req.query.deleted === '1' ? { deletedAt: { $ne: null } } : { deletedAt: null };
 
   if (APPLICATION_STATUSES.includes(req.query.status)) {
     filter.status = req.query.status;
@@ -67,6 +68,34 @@ export async function updateStatus(req, res) {
 
   if (!application) {
     throw ApiError.notFound('Ariza topilmadi');
+  }
+
+  res.json({ success: true, item: application });
+}
+
+export async function softDelete(req, res) {
+  const application = await Application.findOneAndUpdate(
+    { _id: req.params.id, deletedAt: null },
+    { $set: { deletedAt: new Date(), deletedWithUser: false } },
+    { new: true },
+  ).lean();
+
+  if (!application) {
+    throw ApiError.notFound("Ariza topilmadi yoki allaqachon o'chirilgan");
+  }
+
+  res.json({ success: true, item: application });
+}
+
+export async function restore(req, res) {
+  const application = await Application.findOneAndUpdate(
+    { _id: req.params.id, deletedAt: { $ne: null } },
+    { $set: { deletedAt: null, deletedWithUser: false } },
+    { new: true },
+  ).lean();
+
+  if (!application) {
+    throw ApiError.notFound("Ariza topilmadi yoki o'chirilmagan");
   }
 
   res.json({ success: true, item: application });

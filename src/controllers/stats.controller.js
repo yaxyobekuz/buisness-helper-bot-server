@@ -26,10 +26,16 @@ export async function overview(req, res) {
   since.setHours(0, 0, 0, 0);
 
   const [byStatus, totals, daily, recent] = await Promise.all([
-    Application.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
-    Promise.all([Application.countDocuments(), User.countDocuments()]),
     Application.aggregate([
-      { $match: { createdAt: { $gte: since } } },
+      { $match: { deletedAt: null } },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]),
+    Promise.all([
+      Application.countDocuments({ deletedAt: null }),
+      User.countDocuments({ deletedAt: null }),
+    ]),
+    Application.aggregate([
+      { $match: { createdAt: { $gte: since }, deletedAt: null } },
       {
         $group: {
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: TIMEZONE } },
@@ -38,7 +44,7 @@ export async function overview(req, res) {
       },
       { $sort: { _id: 1 } },
     ]),
-    Application.find()
+    Application.find({ deletedAt: null })
       .populate('user', 'username firstName')
       .sort({ number: -1 })
       .limit(5)
