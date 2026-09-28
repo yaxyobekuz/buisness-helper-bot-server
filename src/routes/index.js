@@ -25,12 +25,15 @@ router.patch('/auth/profile', requireAuth, auth.updateProfile);
 router.get('/stats/overview', requireAuth, stats.overview);
 
 router.get('/applications', requireAuth, applications.list);
+// "export" `:id` dan oldin turishi shart, aks holda id deb qabul qilinadi.
+router.get('/applications/export', requireAuth, applications.exportXlsx);
 router.get('/applications/:id', requireAuth, applications.getById);
 router.patch('/applications/:id', requireAuth, applications.updateStatus);
 router.delete('/applications/:id', requireAuth, applications.softDelete);
 router.post('/applications/:id/restore', requireAuth, applications.restore);
 
 router.get('/entrepreneurs', requireAuth, entrepreneurs.list);
+router.get('/entrepreneurs/export', requireAuth, entrepreneurs.exportXlsx);
 router.get('/entrepreneurs/:id', requireAuth, entrepreneurs.getById);
 router.delete('/entrepreneurs/:id', requireAuth, entrepreneurs.softDelete);
 router.post('/entrepreneurs/:id/restore', requireAuth, entrepreneurs.restore);

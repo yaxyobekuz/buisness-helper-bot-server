@@ -117,11 +117,13 @@ Barcha `/api` manzillari (`/health` va `/auth/login` dan tashqari)
 | `PATCH /api/auth/profile` | login, F.I.Sh., parolni o'zgartirish |
 | `GET /api/stats/overview` | bosh sahifa statistikasi |
 | `GET /api/applications` | arizalar (`status`, `search`, `page`, `deleted`) |
+| `GET /api/applications/export` | xlsx (`status`, `deleted`, `from`, `to`) |
 | `GET /api/applications/:id` | bitta ariza |
 | `PATCH /api/applications/:id` | ariza holatini o'zgartirish |
 | `DELETE /api/applications/:id` | arizani yashirish (soft delete) |
 | `POST /api/applications/:id/restore` | arizani tiklash |
 | `GET /api/entrepreneurs` | tadbirkorlar (`search`, `page`, `deleted`) |
+| `GET /api/entrepreneurs/export` | xlsx (`deleted`, `from`, `to`) |
 | `GET /api/entrepreneurs/:id` | tadbirkor + uning arizalari |
 | `DELETE /api/entrepreneurs/:id` | tadbirkorni va arizalarini yashirish |
 | `POST /api/entrepreneurs/:id/restore` | tadbirkorni tiklash |
@@ -141,6 +143,21 @@ mumkin.
 - **O'chirilgan tadbirkor botga qayta yozsa** — avtomatik tiklanadi (aks
   holda bot u uchun ishlamay qolardi), arizalari ham xuddi shu qoida
   bo'yicha qaytadi.
+
+## Excelga eksport
+
+`/export` manzillari `exceljs` orqali xlsx qaytaradi. Sahifalash qo'llanmaydi —
+filtrga mos kelgan hamma yozuv chiqadi.
+
+| Parametr | Qiymatlari |
+| --- | --- |
+| `status` | `Yangi`, `Jarayonda`, `Tugallangan` (faqat arizalarda) |
+| `deleted` | bo'sh — faqat faol, `1` — faqat o'chirilgan, `all` — hammasi |
+| `from`, `to` | `YYYY-MM-DD`, mahalliy vaqt bo'yicha to'liq kun |
+
+Admin panel bu manzillarga to'g'ridan-to'g'ri murojaat qilmaydi: token
+HTTP-only cookie da bo'lgani uchun so'rov Next.js route handleri
+(`/api/export/...`) orqali o'tadi.
 
 ## Admin hisobi
 

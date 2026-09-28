@@ -1,6 +1,32 @@
 import { Application } from '../models/application.model.js';
 import { User } from '../models/user.model.js';
+import {
+  buildWorkbook,
+  dateRangeFilter,
+  exportFileName,
+  sendWorkbook,
+} from '../services/export.service.js';
 import { ApiError } from '../utils/api-error.js';
+
+const dateFormatter = new Intl.DateTimeFormat('uz-UZ', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
+function formatDate(value) {
+  return value ? dateFormatter.format(new Date(value)) : '';
+}
+
+/** `deleted` parametri: '1' — faqat o'chirilganlar, 'all' — hammasi, aks holda faqat faollar. */
+function deletedFilter(value) {
+  if (value === '1') return { deletedAt: { $ne: null } };
+  if (value === 'all') return {};
+
+  return { deletedAt: null };
+}
 
 const PUBLIC_FIELDS =
   'telegramId username firstName lastName fullName address phone createdAt deletedAt';
@@ -13,7 +39,7 @@ export async function list(req, res) {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
   // Standart holatda o'chirilganlar ko'rinmaydi; ?deleted=1 — faqat o'chirilganlar.
-  const filter = req.query.deleted === '1' ? { deletedAt: { $ne: null } } : { deletedAt: null };
+  const filter = deletedFilter(req.query.deleted);
 
   if (req.query.search) {
     const search = escapeRegExp(String(req.query.search).trim());
@@ -114,4 +140,49 @@ export async function restore(req, res) {
   );
 
   res.json({ success: true, item: entrepreneur });
+}
+
+/** Filtrlarga mos tadbirkorlarni xlsx qilib qaytaradi. */
+export async function exportXlsx(req, res) {
+  const filter = {
+    ...deletedFilter(req.query.deleted),
+    ...dateRangeFilter(req.query.from, req.query.to),
+  };
+
+  const items = await User.find(filter).select(PUBLIC_FIELDS).sort({ createdAt: 1 }).lean();
+
+  const counts = await Application.aggregate([
+    { $match: { user: { $in: items.map((item) => item._id) }, deletedAt: null } },
+    { $group: { _id: '$user', count: { $sum: 1 } } },
+  ]);
+
+  const countByUser = new Map(counts.map((row) => [String(row._id), row.count]));
+
+  const buffer = await buildWorkbook({
+    sheetName: 'Tadbirkorlar',
+    columns: [
+      { header: 'F.I.Sh.', key: 'fullName', width: 30 },
+      { header: 'Telefon', key: 'phone', width: 18 },
+      { header: 'Manzil', key: 'address', width: 30 },
+      { header: 'Telegram ismi', key: 'telegramName', width: 24 },
+      { header: 'Username', key: 'username', width: 20 },
+      { header: 'Telegram ID', key: 'telegramId', width: 14 },
+      { header: 'Arizalar soni', key: 'applicationsCount', width: 14 },
+      { header: "Qo'shilgan sana", key: 'createdAt', width: 18 },
+      { header: "O'chirilgan sana", key: 'deletedAt', width: 18 },
+    ],
+    rows: items.map((item) => ({
+      fullName: item.fullName ?? '',
+      phone: item.phone ?? '',
+      address: item.address ?? '',
+      telegramName: [item.firstName, item.lastName].filter(Boolean).join(' '),
+      username: item.username ? `@${item.username}` : '',
+      telegramId: item.telegramId,
+      applicationsCount: countByUser.get(String(item._id)) ?? 0,
+      createdAt: formatDate(item.createdAt),
+      deletedAt: formatDate(item.deletedAt),
+    })),
+  });
+
+  sendWorkbook(res, buffer, exportFileName('tadbirkorlar'));
 }
