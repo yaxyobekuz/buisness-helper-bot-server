@@ -33,6 +33,8 @@ export async function overview(req, res) {
     Promise.all([
       Application.countDocuments({ deletedAt: null }),
       User.countDocuments({ deletedAt: null }),
+      Application.countDocuments({ deletedAt: { $ne: null } }),
+      User.countDocuments({ deletedAt: { $ne: null } }),
     ]),
     Application.aggregate([
       { $match: { createdAt: { $gte: since }, deletedAt: null } },
@@ -52,11 +54,11 @@ export async function overview(req, res) {
   ]);
 
   const statusMap = new Map(byStatus.map((row) => [row._id, row.count]));
-  const [applications, entrepreneurs] = totals;
+  const [applications, entrepreneurs, deletedApplications, deletedEntrepreneurs] = totals;
 
   res.json({
     success: true,
-    totals: { applications, entrepreneurs },
+    totals: { applications, entrepreneurs, deletedApplications, deletedEntrepreneurs },
     byStatus: APPLICATION_STATUSES.map((status) => ({
       status,
       count: statusMap.get(status) ?? 0,

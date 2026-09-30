@@ -38,14 +38,14 @@ function escapeRegExp(value) {
 export async function list(req, res) {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
-  // Standart holatda o'chirilganlar ko'rinmaydi; ?deleted=1 — faqat o'chirilganlar.
-  const filter = deletedFilter(req.query.deleted);
+  // Qidiruv ikkala ko'rinishga ham baravar tegishli.
+  const base = {};
 
   if (req.query.search) {
     const search = escapeRegExp(String(req.query.search).trim());
     const regex = { $regex: search, $options: 'i' };
 
-    filter.$or = [
+    base.$or = [
       { fullName: regex },
       { firstName: regex },
       { lastName: regex },
@@ -54,15 +54,18 @@ export async function list(req, res) {
     ];
   }
 
-  const [items, total] = await Promise.all([
-    User.find(filter)
+  const [items, active, deleted] = await Promise.all([
+    User.find({ ...base, ...deletedFilter(req.query.deleted) })
       .select(PUBLIC_FIELDS)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean(),
-    User.countDocuments(filter),
+    User.countDocuments({ ...base, deletedAt: null }),
+    User.countDocuments({ ...base, deletedAt: { $ne: null } }),
   ]);
+
+  const total = req.query.deleted === '1' ? deleted : active;
 
   const counts = await Application.aggregate([
     { $match: { user: { $in: items.map((item) => item._id) } , deletedAt: null } },
@@ -77,6 +80,7 @@ export async function list(req, res) {
       ...item,
       applicationsCount: countByUser.get(String(item._id)) ?? 0,
     })),
+    counts: { active, deleted },
     pagination: { page, limit, total, pages: Math.ceil(total / limit) || 1 },
   });
 }

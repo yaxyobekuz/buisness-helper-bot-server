@@ -35,18 +35,18 @@ function escapeRegExp(value) {
 export async function list(req, res) {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
-  // Standart holatda o'chirilganlar ko'rinmaydi; ?deleted=1 — faqat o'chirilganlar.
-  const filter = deletedFilter(req.query.deleted);
+  // Qidiruv va holat filtri — ikkala ko'rinishga ham baravar tegishli.
+  const base = {};
 
   if (APPLICATION_STATUSES.includes(req.query.status)) {
-    filter.status = req.query.status;
+    base.status = req.query.status;
   }
 
   if (req.query.search) {
     const search = escapeRegExp(String(req.query.search).trim());
     const asNumber = Number(req.query.search);
 
-    filter.$or = [
+    base.$or = [
       { fullName: { $regex: search, $options: 'i' } },
       { phone: { $regex: search, $options: 'i' } },
       { content: { $regex: search, $options: 'i' } },
@@ -54,19 +54,23 @@ export async function list(req, res) {
     ];
   }
 
-  const [items, total] = await Promise.all([
-    Application.find(filter)
+  const [items, active, deleted] = await Promise.all([
+    Application.find({ ...base, ...deletedFilter(req.query.deleted) })
       .populate('user', 'telegramId username firstName lastName')
       .sort({ number: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean(),
-    Application.countDocuments(filter),
+    Application.countDocuments({ ...base, deletedAt: null }),
+    Application.countDocuments({ ...base, deletedAt: { $ne: null } }),
   ]);
+
+  const total = req.query.deleted === '1' ? deleted : active;
 
   res.json({
     success: true,
     items,
+    counts: { active, deleted },
     pagination: { page, limit, total, pages: Math.ceil(total / limit) || 1 },
   });
 }
